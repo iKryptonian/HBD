@@ -509,7 +509,7 @@ function transitionToMainScene() {
    ============================================================= */
 (function initIntroScene() {
   // Your intro model's filename, in the same folder as this HTML file:
-  const MODEL_PATH = "redheart.glb";
+  const MODEL_PATH = "https://github.com/iKryptonian/HBD/releases/download/v1.0/redheart.glb";
 
   const wrap = document.getElementById("intro-canvas-wrap");
   const loadingEl = document.getElementById("intro-loading");
@@ -771,7 +771,7 @@ startBackgroundMusic();
 
 const LEFT_MESSAGE = `Happy birthday ❤️! No fancy words today, just this: you're one of my favorite people. The kind of friend who makes ordinary days feel a little better just by being in them. I hope you know how much you mean to me, even if I don't say it as often as I should. Here's to you, and to us.`;
 
-const RIGHT_MESSAGE = `Whatever this year throws at you, I've got your back. Not in a "when it's convenient" way, but in a "call me at 3am if you need to" way. You can lean on me, celebrate with me, or just sit in silence with me. I'll be there either way. This is a friend kind of love ❤️, steady and unconditional, and it isn't going anywhere. Happy birthday, here's to standing beside you, always.`;
+const RIGHT_MESSAGE = `Whatever this year throws at you, I've got your back. Not in a "when it's convenient" way, but in a "call me at 3am if you need to" way. You can lean on me, celebrate with me, or just sit in silence with me. I'll be there either way. This is a rare kind of love ❤️, steady and unconditional, and it isn't going anywhere. Happy birthday, here's to standing beside you, always.`;
 
 function typeText(el, text, speed = 28, onDone) {
   el.innerHTML = '<span class="type-cursor"></span>';
@@ -1156,7 +1156,7 @@ window.addEventListener("resize", () => {
 });
 
 // ---------- try to auto-load a model sitting next to this file ----------
-const AUTO_LOAD_FILENAME = "blackgoddess1.glb";
+const AUTO_LOAD_FILENAME = "https://github.com/iKryptonian/HBD/releases/download/v1.0/blackgoddess1.glb";
 
 function autoLoadDefaultModel() {
   const url = new URL(AUTO_LOAD_FILENAME, window.location.href).href;
