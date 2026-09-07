@@ -478,6 +478,8 @@ function transitionToMainScene() {
   document.getElementById("intro-scene").classList.add("intro-hide");
   document.getElementById("main-scene").classList.add("visible");
   controls.autoRotate = true;
+  mainSceneVisible = true;
+  maybeStartMessages();
 
 
   const music = document.getElementById("bg-music");
@@ -799,6 +801,14 @@ function startMessages() {
   if (leftEl) typeText(leftEl, LEFT_MESSAGE, 40);
   if (rightEl) setTimeout(() => typeText(rightEl, RIGHT_MESSAGE, 40), 600);
 }
+let angelModelReady = false;
+let mainSceneVisible = false;
+
+function maybeStartMessages() {
+  if (angelModelReady && mainSceneVisible) {
+    startMessages();
+  }
+}
 
 // ---------- scene setup ----------
 
@@ -1101,7 +1111,8 @@ function onModelLoaded(gltf, displayName) {
   rail.classList.add("visible");
   document.getElementById("birthday-ring").style.display = "block";
   setLoading(false);
-  startMessages();
+  angelModelReady = true;
+  maybeStartMessages();
 }
 
 // ---------- UI wiring ----------
