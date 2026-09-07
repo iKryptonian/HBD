@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700;900&family=Great+Vibes&display=swap" rel="stylesheet">
+<title>Happy Birthday Pavi ❤️</title>
+<style>
+  :root{
+    /* ---- main (birthday goddess) scene theme ---- */
+    --bg: #14161a;
+    --panel: #1b1e24;
+    --panel-2: #20242b;
+    --line: #2b2f37;
+    --text: #e9e6df;
+    --muted: #8b909b;
+    --brass: #c9a24b;
+    --brass-dim: #8c7538;
+    --danger: #c1584a;
+    --radius: 3px;
+
+    /* ---- intro (heart) scene theme ---- */
+    --intro-beige: #ece2d0;
+    --intro-beige-deep: #d9c9ac;
+    --intro-ink: #362c22;
+    --intro-muted: #8a7f6d;
+    --intro-heart: #e0263f;
+    --intro-heart-glow: #ff5c72;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; height:100%; overflow:hidden;
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  canvas{ display:block; width:100%; height:100%; touch-action:none; }
+  canvas.clickable{ cursor:pointer; }
+
+  /* ============================================================
+     Both "scenes" live in the DOM at once and crossfade between
+     each other — nothing here ever navigates to a new document,
+     so a click on the intro heart can start the background music
+     directly (same user gesture, same page) with no autoplay
+     restrictions kicking in on a fresh page load.
+     ============================================================ */
+  .scene{ position:fixed; inset:0; }
+
+  #intro-scene{
+    z-index:3;
+    background:var(--intro-beige); color:var(--intro-ink);
+    transition: opacity 0.7s ease;
+  }
+  #intro-scene.intro-hide{ opacity:0; pointer-events:none; }
+
+
+
+  #main-scene{
+    z-index:2;
+    background:var(--bg); color:var(--text);
+    opacity:0; pointer-events:none;
+    transition: opacity 0.7s ease;
+  }
+  #main-scene.visible{ opacity:1; pointer-events:auto; }
+
+    /* ---- main scene: auto-typing side messages ---- */
+  /* ---- main scene: auto-typing side messages ---- */
+  .message-panel{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:320px;
+    z-index:4;
+    color:#000000;
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:22px;
+    font-weight:900;
+    line-height:1.7;
+    letter-spacing:0.3px;
+    text-align:justify;
+    pointer-events:none;
+    background: rgba(255, 255, 255, 0.10);   /* ← 1. BACKGROUND OPACITY */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 18px 20px;
+    border-radius: 12px;
+    -webkit-text-stroke: 0.1px #ffffff;         /* ← 2. WHITE OUTLINE + 3. LETTER THICKNESS */
+    paint-order: stroke fill;
+    text-shadow: 0 0 0.5px #000000, 0 0 0.5px #000000;
+  }
+  .message-panel{ left:2%; }
+  .message-panel.message-right{ right:2%; left:auto; }
+  .message-panel p{ margin:0; text-align:justify; }
+  .message-panel .type-cursor{
+    display:inline-block;
+    width:2px; height:1em;
+    background:currentColor;
+    vertical-align:middle;
+    margin-left:2px;
+    animation: cursor-blink 0.9s steps(1) infinite;
+  }
+  @keyframes cursor-blink{ 50%{ opacity:0; } }
+
+  @media (max-width:900px){
+    .message-panel{
+      position:static;
+      transform:none;
+      width:auto;
+      max-width:90%;
+      margin:14px auto;
+      display:block;
+      text-align:justify;
+    }
+    .message-right{ text-align:justify; }
+  }
+
+  /* wrapper around both message panels — no-op on desktop (position:absolute
+     panels lay out exactly as before), becomes a scrollable flow column
+     stacked beneath the angel on mobile so the message is never lost */
+  #message-mobile-stack{ display:contents; }
+  @media (max-width:900px){
+    #message-mobile-stack{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      position:absolute;
+      top:auto;
+      bottom:90px;
+      left:0; right:0;
+      max-height:38vh;
+      overflow-y:auto;
+      padding:0 16px;
+      z-index:4;
+    }
+  }
+
+  @media (max-width:640px){
+    .message-panel p, .message-panel{
+      font-size:15px;
+    }
+  }
+
+  /* ---- intro: prompt beneath the model ---- */
+  #enter-prompt{
+    position:absolute; bottom:9%; left:50%; transform:translateX(-50%);
+    z-index:3; text-align:center; pointer-events:none;
+  }
+  #enter-prompt p{
+    margin:0; font-size:11px; letter-spacing:2.5px;
+    text-transform:uppercase; color:var(--intro-muted);
+    animation: prompt-fade 2.4s ease-in-out infinite;
+  }
+  @keyframes prompt-fade{
+    0%, 100%{ opacity:0.55; }
+    50%{ opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #enter-prompt p{ animation:none; opacity:0.85; }
+  }
+
+  /* ---- intro: loading ---- */
+  #intro-loading{
+    position:absolute; inset:0; z-index:6;
+    display:none; align-items:center; justify-content:center;
+    flex-direction:column; gap:14px;
+    background: rgba(20,22,26,0.15);
+  }
+  #intro-loading.active{ display:flex; }
+  .intro-spinner{
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid var(--intro-beige-deep); border-top-color:var(--intro-heart);
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #intro-loading .label{ font-size:12px; color:var(--intro-muted); }
+
+  /* ---- main scene: optional background image/video (empty src = unused) ---- */
+  #bg-media{ position:absolute; inset:0; z-index:0; overflow:hidden; background:var(--bg); }
+  #bg-media img, #bg-media video{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; display:none;
+  }
+  #bg-music{ display:none; }
+
+  #canvas-wrap, #intro-canvas-wrap{ position:absolute; inset:0; z-index:1; }
+
+  /* ---- rotating birthday text ring over the model ---- */
+  #birthday-ring{
+    position:absolute; top:50%; left:50%;
+    width:min(98vmin, 980px); aspect-ratio:1/1;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:3;
+  }
+  #birthday-ring svg{
+    width:100%; height:100%;
+    animation: spin-ring 26s linear infinite;
+    overflow:visible;
+  }
+  #birthday-ring text{
+    font-family:'Great Vibes', cursive;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    fill:#000000;
+    stroke:#ffffff;
+    stroke-width:0.9px;
+    paint-order:stroke fill;
+  }
+  @keyframes spin-ring{
+    from{ transform:rotate(0deg); }
+    to{ transform:rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #birthday-ring svg{ animation:none; }
+  }
+  @media (max-width:640px){
+    #birthday-ring{ width:min(105vmin, 620px); }
+    #birthday-ring text{ font-size:12px; letter-spacing:0.2px; }
+  }
+  
+
+  .btn{
+    appearance:none; border:1px solid var(--brass-dim);
+    background: transparent; color:var(--text);
+    font-size:13px; padding:10px 18px;
+    border-radius: var(--radius);
+    cursor:pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    font-family:inherit;
+  }
+  .btn:hover{ border-color:var(--brass); background: rgba(201,162,75,0.08); }
+
+  /* ---- main scene: loading state ---- */
+  #loading{
+    position:absolute; inset:0; z-index:6;
+    display:none; align-items:center; justify-content:center;
+    flex-direction:column; gap:14px;
+    background: rgba(20,22,26,0.75);
+  }
+  #loading.active{ display:flex; }
+  .spinner{
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid var(--line); border-top-color:var(--brass);
+    animation: spin 0.9s linear infinite;
+  }
+  #loading .label{ font-size:12px; color:var(--muted); }
+  #loading .pct{ font-size:12px; color:var(--text); font-variant-numeric: tabular-nums; }
+
+  /* ---- main scene: error toast ---- */
+  #error-toast{
+    position:absolute; bottom:96px; left:50%; transform:translateX(-50%);
+    background: var(--panel); border:1px solid var(--danger);
+    color:var(--text); font-size:13px; padding:12px 16px;
+    border-radius:var(--radius); z-index:8; display:none; max-width:520px;
+  }
+  #error-toast.active{ display:block; }
+
+  /* ---- main scene: top-right control rail ---- */
+  #rail{
+    position:absolute; top:22px; right:24px;
+    display:flex; align-items:center; gap:2px;
+    background: rgba(27,30,36,0.85);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding:6px; z-index:5;
+    backdrop-filter: blur(8px);
+    visibility:hidden;
+  }
+  #rail.visible{ visibility:visible; }
+  .rail-btn{
+    height:36px; padding:0 12px;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    background:transparent; border:none; border-radius:2px;
+    cursor:pointer; color:var(--muted);
+    transition: background 0.15s ease, color 0.15s ease;
+    font-family:inherit;
+  }
+  .rail-btn svg{ width:17px; height:17px; stroke:currentColor; fill:none; flex-shrink:0; }
+  .rail-btn .rail-label{ font-size:12px; letter-spacing:0.3px; }
+  .rail-btn:hover{ background:var(--panel-2); color:var(--text); }
+  .rail-btn.active{ color:var(--brass); }
+  .rail-sep{ width:1px; height:22px; background:var(--line); margin:0 2px; }
+  .icon-muted{ display:none; }
+  .rail-btn.is-muted .icon-unmuted{ display:none; }
+  .rail-btn.is-muted .icon-muted{ display:block; }
+  .rail-btn.is-playing{ color:var(--brass); }
+  .eq{ display:none; align-items:flex-end; gap:2px; height:14px; width:15px; }
+  .rail-btn.is-playing .eq{ display:inline-flex; }
+  .rail-btn.is-playing .icon-unmuted{ display:none; }
+  .eq span{
+    width:3px; height:4px; border-radius:1px;
+    background:currentColor;
+    animation: eq-bounce 0.9s ease-in-out infinite;
+  }
+  .eq span:nth-child(1){ animation-delay:0s; }
+  .eq span:nth-child(2){ animation-delay:0.18s; }
+  .eq span:nth-child(3){ animation-delay:0.36s; }
+  .eq span:nth-child(4){ animation-delay:0.09s; }
+  @keyframes eq-bounce{
+    0%, 100%{ height:4px; }
+    50%{ height:14px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .eq span{ animation:none; height:9px; }
+  }
+
+  /* ---- main scene: lighting panel ---- */
+  #lighting-panel{
+    position:absolute; top:70px; right:24px; z-index:6;
+    width:220px;
+    background: rgba(27,30,36,0.92);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    backdrop-filter: blur(8px);
+    display:none;
+  }
+  #lighting-panel.active{ display:block; }
+  #lighting-panel h2{
+    font-size:11px; text-transform:uppercase; letter-spacing:1px;
+    color:var(--muted); margin:0 0 14px; font-weight:500;
+  }
+  .lp-label{
+    display:flex; justify-content:space-between;
+    font-size:12px; color:var(--muted); margin-bottom:8px;
+  }
+  .lp-label span:last-child{
+    color:var(--brass); font-variant-numeric: tabular-nums;
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:3px; background:var(--line);
+    border-radius:2px; outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:13px; height:13px; border-radius:50%;
+    background:var(--brass); cursor:pointer;
+    border:2px solid #14161a;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:13px; height:13px; border-radius:50%;
+    background:var(--brass); cursor:pointer; border:2px solid #14161a;
+  }
+
+  @media (max-width:640px){
+    #lighting-panel{ width:74vw; right:12px; top:60px; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+
+  @media (max-width:640px){
+    .filename{ display:none; }
+    #rail{ top:14px; right:12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =======================================================================
+     INTRO SCENE — small heart model, tap it to continue
+     ======================================================================= -->
+<div id="intro-scene" class="scene">
+  <div id="intro-canvas-wrap"></div>
+
+  <div id="enter-prompt">
+    <p>Tap to begin</p>
+  </div>
+
+  <div id="intro-loading">
+    <div class="intro-spinner"></div>
+    <div class="label" id="intro-loading-label">Loading…</div>
+  </div>
+</div>
+
+<!-- =======================================================================
+     MAIN SCENE — the birthday goddess experience
+     ======================================================================= -->
+<div id="main-scene" class="scene">
+  <div id="canvas-wrap"></div>
+
+  <div id="birthday-ring" style="display:none;">
+    <svg viewBox="0 0 400 400">
+      <path id="ringTextPath" fill="none"
+        d="M 200,200 m -170,0 a170,170 0 1,1 340,0 a170,170 0 1,1 -340,0" />
+      <text>
+        <textPath href="#ringTextPath" startOffset="0%" textLength="1068" lengthAdjust="spacingAndGlyphs">Happy Birthday Pavi <tspan font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif" fill="#e0263f">❤️</tspan> &#160;&#160;&#8226;&#160;&#160; Happy Birthday Pavi <tspan font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif" fill="#e0263f">❤️</tspan> &#160;&#160;&#8226;&#160;&#160; Happy Birthday Pavi <tspan font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif" fill="#e0263f">❤️</tspan> &#160;&#160;&#8226;&#160;&#160; Happy Birthday Pavi <tspan font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif" fill="#e0263f">❤️</tspan> &#160;&#160;&#8226;&#160;&#160; Happy Birthday Pavi <tspan font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif" fill="#e0263f">❤️</tspan> &#160;&#160;&#8226;&#160;&#160; </textPath>
+      </text>
+    </svg>
+  </div>
+  <div id="message-mobile-stack">
+    <div id="message-left" class="message-panel">
+      <p id="message-left-text"></p>
+    </div>
+    <div id="message-right" class="message-panel message-right">
+      <p id="message-right-text"></p>
+    </div>
+  </div>
+
+  <!-- Optional background image / video. Leave src empty for now — drop in a
+       filename later (e.g. "bg.jpg" or "bg.mp4") and it will show automatically
+       behind the 3D model. If both are left empty, the studio grey backdrop is used. -->
+  <div id="bg-media">
+    <img id="bg-image" src="" alt="" />
+    <video id="bg-video" src="" autoplay muted loop playsinline></video>
+  </div>
+
+  <!-- Background music. Set src to your audio file (e.g. "music.mp3") — it will
+       loop continuously for as long as the page stays open. -->
+  <audio id="bg-music" src="" loop preload="auto"></audio>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="label" id="loading-label">Loading Angel 🖤</div>
+    <div class="pct" id="loading-pct"></div>
+  </div>
+
+  <div id="error-toast"></div>
+
+  <div id="rail">
+    <button class="rail-btn active" id="btn-rotate" title="Toggle auto-rotate">
+      <svg viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      <span class="rail-label">Auto</span>
+    </button>
+    <div class="rail-sep"></div>
+    <button class="rail-btn" id="btn-mute" title="Mute / unmute music">
+      <svg class="icon-unmuted" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a9 9 0 0 1 0 12"/></svg>
+      <svg class="icon-muted" viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="m22.5 9-6 6"/><path d="m16.5 9 6 6"/></svg>
+      <span class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+      <span class="rail-label" id="mute-label">Sound</span>
+    </button>
+    <div class="rail-sep"></div>
+    <button class="rail-btn" id="btn-lighting" title="Adjust lighting">
+      <svg viewBox="0 0 24 24" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2Z"/></svg>
+      <span class="rail-label">Light</span>
+    </button>
+  </div>
+
+  <div id="lighting-panel">
+    <h2>Lighting</h2>
+    <div class="lp-label"><span>Brightness</span><span id="lighting-readout">0.40×</span></div>
+    <input type="range" id="lighting-slider" min="0.2" max="2" value="0.4" step="0.01" />
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+/* =============================================================
+   Crossfade between the two scenes. Because everything lives in
+   this one document, clicking the intro heart can call .play()
+   on the audio element directly, inside the very same click
+   handler — that's what "carries the gesture forward" and lets
+   the browser's autoplay policy allow the music to start right
+   away, instead of needing a second click after a page navigation.
+   ============================================================= */
+let hasTransitioned = false;
+function transitionToMainScene() {
+  if (hasTransitioned) return;
+  hasTransitioned = true;
+
+  document.getElementById("intro-scene").classList.add("intro-hide");
+  document.getElementById("main-scene").classList.add("visible");
+  controls.autoRotate = true;
+  startMessages();
+
+  const music = document.getElementById("bg-music");
+  if (music) {
+    music.muted = false;
+    music.play().catch((err) => {
+      reportMusicFailure(err);
+      const resumeOnInteraction = () => {
+        window.removeEventListener("pointerdown", resumeOnInteraction, true);
+        window.removeEventListener("keydown", resumeOnInteraction, true);
+        music.play().catch(() => {});
+      };
+      window.addEventListener("pointerdown", resumeOnInteraction, true);
+      window.addEventListener("keydown", resumeOnInteraction, true);
+    });
+  }
+
+  // fully detach the intro scene once the crossfade finishes, so its
+  // render loop stops costing anything once it's no longer visible
+  setTimeout(() => {
+    document.getElementById("intro-scene").style.display = "none";
+  }, 750);
+}
+
+/* =============================================================
+   INTRO SCENE — small red heart model, tap it to continue.
+   Scoped in its own function so its variables (scene, camera,
+   renderer, etc.) don't collide with the main scene's below.
+   ============================================================= */
+(function initIntroScene() {
+  // Your intro model's filename, in the same folder as this HTML file:
+  const MODEL_PATH = "redheart.glb";
+
+  const wrap = document.getElementById("intro-canvas-wrap");
+  const loadingEl = document.getElementById("intro-loading");
+  const loadingLabel = document.getElementById("intro-loading-label");
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 2000);
+  camera.position.set(0, 0, 4);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  wrap.appendChild(renderer.domElement);
+
+  // beige studio backdrop
+  function makeBeigeBackground() {
+    const c = document.createElement("canvas");
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext("2d");
+    const grad = ctx.createRadialGradient(256, 230, 40, 256, 256, 380);
+    grad.addColorStop(0, "#f3ead9");
+    grad.addColorStop(0.55, "#e3d5ba");
+    grad.addColorStop(1, "#c9b791");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; // 0 = no dimming, 1 = fully black
+    ctx.fillRect(0, 0, 512, 512);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+  scene.background = makeBeigeBackground();
+
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.035).texture;
+
+  // soft even studio lighting from every side
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8a7f6d, 1.0);
+  scene.add(hemi);
+  const lightRig = [
+    { pos: [0, 3, 6], intensity: 0.95, shadow: true },
+    { pos: [0, 3, -6], intensity: 0.7, shadow: false },
+    { pos: [-6, 2, 1], intensity: 0.75, shadow: false },
+    { pos: [6, 2, 1], intensity: 0.75, shadow: false },
+    { pos: [0, 7, 2], intensity: 0.6, shadow: false },
+    { pos: [0, -3, 0], intensity: 0.3, shadow: false },
+  ];
+  lightRig.forEach(({ pos, intensity, shadow }) => {
+    const light = new THREE.DirectionalLight(0xffffff, intensity);
+    light.position.set(pos[0], pos[1], pos[2]);
+    if (shadow) {
+      light.castShadow = true;
+      light.shadow.mapSize.set(1024, 1024);
+      light.shadow.bias = -0.0004;
+    }
+    scene.add(light);
+  });
+
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/");
+  const gltfLoader = new GLTFLoader();
+  gltfLoader.setDRACOLoader(dracoLoader);
+
+  let currentModel = null;
+
+  function fitCameraToObject(object, offset = 1.4) {
+    const box = new THREE.Box3().setFromObject(object);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    const fitDist = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * offset;
+    const dir = new THREE.Vector3(0, 0, 1).normalize();
+    camera.position.copy(center.clone().add(dir.multiplyScalar(fitDist)));
+    camera.lookAt(center);
+    camera.near = fitDist / 100;
+    camera.far = fitDist * 100;
+    camera.updateProjectionMatrix();
+    return { size, center };
+  }
+
+  function setLoading(active, label) {
+    loadingEl.classList.toggle("active", active);
+    if (label) loadingLabel.textContent = label;
+  }
+
+  function onModelLoaded(gltf) {
+    const model = gltf.scene || gltf.scenes[0];
+    model.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        if (n.material) {
+          const mArr = Array.isArray(n.material) ? n.material : [n.material];
+          mArr.forEach((m) => { if (m.map) m.map.colorSpace = THREE.SRGBColorSpace; });
+        }
+      }
+    });
+    scene.add(model);
+    currentModel = model;
+    fitCameraToObject(model, 3);
+    renderer.domElement.classList.add("clickable");
+    setLoading(false);
+  }
+
+  setLoading(true, "Loading…");
+  gltfLoader.load(
+    MODEL_PATH,
+    onModelLoaded,
+    undefined,
+    () => {
+      setLoading(false);
+      console.warn(
+        `Couldn't find "${MODEL_PATH}". Place your model file next to this HTML file with that exact name ` +
+        `(or edit MODEL_PATH near the top of the intro scene's script to match its filename).`
+      );
+    }
+  );
+
+  // ---------- click the model to continue ----------
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  renderer.domElement.addEventListener("click", (e) => {
+    if (!currentModel) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const hits = raycaster.intersectObject(currentModel, true);
+    if (hits.length > 0) transitionToMainScene();
+  });
+
+  window.addEventListener("resize", () => {
+    camera.aspect = wrap.clientWidth / wrap.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (hasTransitioned) return; // stop wasting frames once we've moved on
+    if (currentModel) currentModel.rotation.y += 0.006; // slow continuous turntable spin
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+/* =============================================================
+   MAIN SCENE — the birthday goddess experience. Runs immediately
+   (in parallel with the intro), so the model, background image,
+   and lighting are already warmed up and ready the instant the
+   intro heart is tapped — the crossfade above just reveals it.
+   ============================================================= */
+const wrap = document.getElementById("canvas-wrap");
+const loadingEl = document.getElementById("loading");
+const loadingLabel = document.getElementById("loading-label");
+const loadingPct = document.getElementById("loading-pct");
+const errorToast = document.getElementById("error-toast");
+const rail = document.getElementById("rail");
+const btnRotate = document.getElementById("btn-rotate");
+const btnMute = document.getElementById("btn-mute");
+const btnLighting = document.getElementById("btn-lighting");
+const lightingPanel = document.getElementById("lighting-panel");
+const lightingSlider = document.getElementById("lighting-slider");
+const lightingReadout = document.getElementById("lighting-readout");
+
+const bgImage = document.getElementById("bg-image");
+const bgVideo = document.getElementById("bg-video");
+const bgMusic = document.getElementById("bg-music");
+
+// Default zoom level the model opens at (1.0 = model's native imported size)
+const DEFAULT_SCALE = 0.910;
+
+// ---------- optional background image / video ----------
+// Fill in a filename below (e.g. "bg.jpg" or "bg.mp4") whenever you're ready;
+// leave blank to keep the plain studio backdrop.
+const BG_IMAGE_PATH = "bg1.png";
+const BG_VIDEO_PATH = "";
+const BG_OPACITY = 0.6; // 0 = fully invisible, 1 = fully solid. Try 0.4–0.7 to dim it behind the model.
+
+if (BG_VIDEO_PATH) {
+  bgVideo.onerror = () => {
+    showError(`Couldn't load background video "${BG_VIDEO_PATH}". Check it's in the same folder as this HTML file and the filename (including extension and capitalization) matches exactly.`);
+  };
+  bgVideo.src = BG_VIDEO_PATH;
+  bgVideo.style.display = "block";
+  bgVideo.style.opacity = BG_OPACITY;
+  bgVideo.play().catch(() => {});
+} else if (BG_IMAGE_PATH) {
+  bgImage.onload = () => {
+    console.log(`Background image "${BG_IMAGE_PATH}" loaded OK.`);
+  };
+  bgImage.onerror = () => {
+    showError(`Couldn't load background image "${BG_IMAGE_PATH}". Check it's in the same folder as this HTML file and the filename (including extension and capitalization) matches exactly — e.g. "outerspacebg.png" vs "OuterSpaceBG.PNG".`);
+  };
+  bgImage.src = BG_IMAGE_PATH;
+  bgImage.style.display = "block";
+  bgImage.style.opacity = BG_OPACITY;
+}
+
+// ---------- background music (loops until the page is closed) ----------
+// Fill in a filename below (e.g. "music.mp3") whenever you're ready.
+const MUSIC_PATH = "thewayyouare.mov";
+let musicErrorShown = false;
+
+function reportMusicFailure(err) {
+  console.warn("Background music failed to play:", err);
+  if (musicErrorShown) return;
+  musicErrorShown = true;
+  if (err && err.name === "NotAllowedError") {
+    showError(
+      `Your browser blocked audio from starting automatically. Click anywhere on the page to allow it.`
+    );
+  } else {
+    showError(
+      `Couldn't play "${MUSIC_PATH}" (${err && err.name ? err.name : "unknown error"}). Check the file is a valid, non-corrupted audio file in the same folder as this HTML file, ` +
+      `and the name (including extension and capitalization) matches exactly.`
+    );
+  }
+}
+
+function startBackgroundMusic() {
+  if (!MUSIC_PATH) return;
+  bgMusic.src = encodeURI(MUSIC_PATH); // encodeURI handles spaces/special characters in the filename
+  bgMusic.loop = true;
+  bgMusic.addEventListener("error", () => {
+    showError(`Couldn't load audio file "${MUSIC_PATH}". Check it's in the same folder as this HTML file, the filename matches exactly (spaces, capitalization, and extension all included), and it's a browser-supported format (.mp3, .m4a, .ogg, .wav).`);
+  });
+  const tryPlay = () => bgMusic.play().catch(() => {
+    // silent here — this is the automatic pre-interaction attempt, which is
+    // *expected* to fail in most browsers until the user clicks/taps once.
+    // (On this page that first click is almost always the intro heart tap,
+    // handled directly in transitionToMainScene() above.)
+  });
+  tryPlay();
+  // Safety net: if audio still hasn't started for some reason (e.g. the user
+  // somehow reaches this scene without going through the intro), catch the
+  // next interaction anywhere on the page. Uses the capture phase so it
+  // still fires even if something else (like OrbitControls) stops the event
+  // from bubbling.
+  /*const resumeOnInteraction = () => {
+    window.removeEventListener("pointerdown", resumeOnInteraction, true);
+    window.removeEventListener("keydown", resumeOnInteraction, true);
+    bgMusic.play().catch(reportMusicFailure);
+  };
+  window.addEventListener("pointerdown", resumeOnInteraction, true);
+  window.addEventListener("keydown", resumeOnInteraction, true) */
+}
+startBackgroundMusic();
+
+
+const LEFT_MESSAGE = `Happy birthday ❤️! No fancy words today, just this: you're one of my favorite people. The kind of friend who makes ordinary days feel a little better just by being in them. I hope you know how much you mean to me, even if I don't say it as often as I should. Here's to you, and to us.`;
+
+const RIGHT_MESSAGE = `Whatever this year throws at you, I've got your back. Not in a "when it's convenient" way, but in a "call me at 3am if you need to" way. You can lean on me, celebrate with me, or just sit in silence with me. I'll be there either way. This is a friend kind of love ❤️, steady and unconditional, and it isn't going anywhere. Happy birthday, here's to standing beside you, always.`;
+
+function typeText(el, text, speed = 28, onDone) {
+  el.innerHTML = '<span class="type-cursor"></span>';
+  let i = 0;
+  function step() {
+    if (i <= text.length) {
+      el.innerHTML = text.slice(0, i) + '<span class="type-cursor"></span>';
+      i++;
+      setTimeout(step, speed);
+    } else if (onDone) {
+      onDone();
+    }
+  }
+  step();
+}
+
+let messagesStarted = false;
+function startMessages() {
+  if (messagesStarted) return;
+  messagesStarted = true;
+  const leftEl = document.getElementById("message-left-text");
+  const rightEl = document.getElementById("message-right-text");
+  if (leftEl) typeText(leftEl, LEFT_MESSAGE, 40);
+  if (rightEl) setTimeout(() => typeText(rightEl, RIGHT_MESSAGE, 40), 600);
+}
+
+// ---------- scene setup ----------
+
+// ---------- scene setup ----------
+const scene = new THREE.Scene();
+scene.background = null;
+
+const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 2000);
+camera.position.set(3.2, 2.1, 3.8);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0x000000, 0); // fully transparent clear — lets #bg-media show through when scene.background is null
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+wrap.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.autoRotate = false;
+controls.autoRotateSpeed = 1.4;
+controls.enablePan = false;
+controls.enableZoom = false;
+controls.minDistance = 0.05;
+controls.maxDistance = 200;
+// lock vertical orbiting — only left/right (azimuthal) rotation is allowed
+controls.minPolarAngle = Math.PI / 2;
+controls.maxPolarAngle = Math.PI / 2;
+
+// lighting: soft, even studio rig (flat, shadow-light, no single dominant side)
+// The wings sit on their own light "layer" so they can be lit completely
+// independently from the body — tuning body lights never affects wings,
+// and vice versa. See WING_LAYER / wingLightRig below.
+const WING_LAYER = 1;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x3a3a3d, 1.05);
+const hemiBaseIntensity = hemi.intensity;
+hemi.layers.enableAll(); // ambient fill still reaches both body and wings
+scene.add(hemi);
+
+// ---- body lights (layer 0 — do NOT affect wings) ----
+const lightRig = [
+  { pos: [0, 3, 6], intensity: 0.9, color: 0xffffff, shadow: true },   // front
+  { pos: [0, 3, -6], intensity: 0.7, color: 0xffffff, shadow: false }, // back
+  { pos: [-6, 2, 1], intensity: 0.75, color: 0xffffff, shadow: false },// left
+  { pos: [6, 2, 1], intensity: 0.75, color: 0xffffff, shadow: false }, // right
+  { pos: [0, 7, 2], intensity: 0.6, color: 0xffffff, shadow: false }, // top
+  { pos: [0, -3, 0], intensity: 0.35, color: 0xffffff, shadow: false },// bottom bounce
+];
+
+const adjustableLights = [];
+lightRig.forEach(({ pos, intensity, color, shadow }) => {
+  const light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(pos[0], pos[1], pos[2]);
+  light.userData.baseIntensity = intensity;
+  if (shadow) {
+    light.castShadow = true;
+    light.shadow.mapSize.set(2048, 2048);
+    light.shadow.camera.near = 0.1;
+    light.shadow.camera.far = 50;
+    light.shadow.bias = -0.0004;
+    light.shadow.radius = 4;
+  }
+  scene.add(light);
+  adjustableLights.push(light);
+});
+
+// ---- wing-only lights (layer 1 — do NOT affect the body) ----
+// Tune ONLY these two numbers to change how the wings look:
+// keep "front" low so front-facing feathers don't blow out white,
+// keep "back" higher so the backside of the wings has visible detail.
+const wingLightRig = [
+  { pos: [0, 3, 6], intensity: 0.05, color: 0xffffff },   // wing front — keep LOW
+  { pos: [0, 3, -6], intensity: 3.5, color: 0xffffff },  // wing back — keep HIGHER
+];
+
+const adjustableWingLights = [];
+wingLightRig.forEach(({ pos, intensity, color }) => {
+  const light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(pos[0], pos[1], pos[2]);
+  light.userData.baseIntensity = intensity;
+  light.layers.set(WING_LAYER); // only illuminates objects placed on WING_LAYER
+  scene.add(light);
+  adjustableWingLights.push(light);
+});
+
+// camera must explicitly opt in to see objects placed on WING_LAYER
+camera.layers.enable(WING_LAYER);
+
+// default brightness starts at 0.50×
+const DEFAULT_BRIGHTNESS = 0.22;
+hemi.intensity = hemiBaseIntensity * DEFAULT_BRIGHTNESS;
+adjustableLights.forEach((l) => { l.intensity = l.userData.baseIntensity * DEFAULT_BRIGHTNESS; });
+adjustableWingLights.forEach((l) => { l.intensity = l.userData.baseIntensity * DEFAULT_BRIGHTNESS; });
+
+
+// neutral grey studio backdrop (radial gradient) behind the model —
+// skipped when a custom background image/video is set above, so that
+// background can show through the transparent canvas instead.
+function makeStudioBackground() {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext("2d");
+  const grad = ctx.createRadialGradient(256, 230, 40, 256, 256, 380);
+  grad.addColorStop(0, "#7a7b7f");
+  grad.addColorStop(0.55, "#57585c");
+  grad.addColorStop(1, "#333438");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+scene.background = (BG_IMAGE_PATH || BG_VIDEO_PATH) ? null : makeStudioBackground();
+
+// neutral image-based lighting so PBR materials show proper surface detail
+// (metallic/rough materials rely on reflected environment light — without it
+// fine detail like lips, creases, and eyes can look flat or "collapsed")
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.008).texture;
+
+// ground plane (shadow catcher) + grid
+const groundGeo = new THREE.PlaneGeometry(200, 200);
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.28 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+ground.visible = false;
+scene.add(ground);
+
+const grid = new THREE.GridHelper(20, 40, 0x8c7538, 0x2b2f37);
+grid.material.opacity = 0.35;
+grid.material.transparent = true;
+grid.visible = false;
+scene.add(grid);
+
+// ---------- loaders ----------
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/");
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+let currentModel = null;
+let currentObjectUrl = null;
+let originalSize = new THREE.Vector3(1, 1, 1);
+const modelLocalBox = new THREE.Box3();
+const _worldBoxTmp = new THREE.Box3();
+const _centerTmp = new THREE.Vector3();
+
+function getWorldBoxCenter(object) {
+  object.updateMatrixWorld(true);
+  _worldBoxTmp.copy(modelLocalBox).applyMatrix4(object.matrixWorld);
+  return _worldBoxTmp.getCenter(_centerTmp);
+}
+
+function syncOrbitTargetToModel() {
+  if (!currentModel) return;
+  controls.target.copy(getWorldBoxCenter(currentModel));
+  controls.update();
+}
+
+function fitCameraToObject(object, offset = 1.35) {
+  let box;
+  if (modelLocalBox.isEmpty()) {
+    box = new THREE.Box3().setFromObject(object);
+  } else {
+    object.updateMatrixWorld(true);
+    box = _worldBoxTmp.copy(modelLocalBox).applyMatrix4(object.matrixWorld);
+  }
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const fitDist = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * offset;
+
+  // straight-on front view (change to Vector3(1,0,1) for a 3/4 angled view instead)
+  const dir = new THREE.Vector3(0, 0, 1).normalize();
+  camera.position.copy(center.clone().add(dir.multiplyScalar(fitDist)));
+  camera.near = fitDist / 100;
+  camera.far = fitDist * 100;
+  camera.updateProjectionMatrix();
+
+  controls.target.copy(center);
+  controls.update();
+
+  // scale ground + grid relative to model
+  const groundY = box.min.y;
+  ground.position.y = groundY;
+  grid.position.y = groundY;
+  const gridScale = Math.max(maxDim * 3, 4);
+  grid.scale.setScalar(gridScale / 20);
+
+  return { size, center };
+}
+
+function clearCurrentModel() {
+  if (currentModel) {
+    scene.remove(currentModel);
+    currentModel.traverse((n) => {
+      if (n.isMesh) {
+        n.geometry?.dispose();
+        if (Array.isArray(n.material)) n.material.forEach((m) => m.dispose());
+        else n.material?.dispose();
+      }
+    });
+    currentModel = null;
+  }
+  modelLocalBox.makeEmpty();
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+}
+
+function showError(msg, duration = 8000) {
+  errorToast.textContent = msg;
+  errorToast.classList.add("active");
+  setTimeout(() => errorToast.classList.remove("active"), duration);
+}
+
+function setLoading(active, label) {
+  loadingEl.classList.toggle("active", active);
+  if (label) loadingLabel.textContent = label;
+  loadingPct.textContent = "";
+}
+
+function onModelLoaded(gltf, displayName) {
+  clearCurrentModel();
+
+  const model = gltf.scene || gltf.scenes[0];
+
+  // ---- selectively darken the wings ----
+  // Add whatever words show up in YOUR model's mesh/material names below
+  // (check the browser console after load — every mesh name is printed there).
+  const WING_KEYWORDS = ["wing", "feather"];
+  const WING_DARKEN = 0.22; // 0 = pitch black, 1 = original brightness (unchanged)
+
+  const meshNamesFound = [];
+  model.traverse((n) => {
+    if (n.isMesh) {
+      n.castShadow = true;
+      n.receiveShadow = true;
+      meshNamesFound.push(`${n.name || "(unnamed mesh)"} — material: ${n.material?.name || "(unnamed material)"}`);
+      if (n.material) {
+        const isWing = WING_KEYWORDS.some((k) =>
+          (n.name || "").toLowerCase().includes(k) ||
+          (n.material.name || "").toLowerCase().includes(k)
+        );
+        // clone so darkening one mesh never affects another mesh sharing the same material
+        n.material = Array.isArray(n.material) ? n.material.map((m) => m.clone()) : n.material.clone();
+        const mArr = Array.isArray(n.material) ? n.material : [n.material];
+        mArr.forEach((m) => {
+          if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+          if (isWing) {
+            m.color.multiplyScalar(WING_DARKEN);
+            if (m.emissive) m.emissive.multiplyScalar(WING_DARKEN);
+            if (m.metalness !== undefined) m.metalness = 0;
+            if (m.roughness !== undefined) m.roughness = Math.max(m.roughness, 0.75); // higher = less shiny/matte
+            if (m.envMapIntensity !== undefined) m.envMapIntensity = 0.15; // lower = less reflection glare
+          }
+        });
+        // move wing meshes onto their own light layer so ONLY the
+        // dedicated wingLightRig (front/back, tuned above) lights them —
+        // the body's front/left/right/top lights no longer touch them at all
+        if (isWing) n.layers.set(WING_LAYER);
+      }
+    }
+  });
+  console.log("Mesh / material names in this model (use one of these words in WING_KEYWORDS):");
+  console.table(meshNamesFound);
+
+  model.position.set(0, 0, 0);
+  model.scale.set(1, 1, 1);
+
+  scene.add(model);
+  currentModel = model;
+  model.updateMatrixWorld(true);
+  modelLocalBox.setFromObject(model);
+
+  const { size } = fitCameraToObject(model);
+  originalSize.copy(size);
+  ground.visible = false;
+  grid.visible = false;
+
+  // apply the default zoom/scale
+  currentModel.scale.setScalar(DEFAULT_SCALE);
+  syncOrbitTargetToModel();
+  const worldSize = new THREE.Vector3();
+  _worldBoxTmp.getSize(worldSize);
+  const maxDim = Math.max(worldSize.x, worldSize.y, worldSize.z) || 1;
+  camera.near = Math.max(maxDim / 500, 0.001);
+  camera.far = maxDim * 200;
+  camera.updateProjectionMatrix();
+
+  rail.classList.add("visible");
+  document.getElementById("birthday-ring").style.display = "block";
+  setLoading(false);
+}
+
+// ---------- UI wiring ----------
+btnRotate.addEventListener("click", (e) => {
+  controls.autoRotate = !controls.autoRotate;
+  e.currentTarget.classList.toggle("active", controls.autoRotate);
+});
+
+function updateMuteUI() {
+  const silent = bgMusic.paused || bgMusic.muted || !MUSIC_PATH;
+  btnMute.classList.toggle("is-muted", silent);
+  btnMute.classList.toggle("is-playing", !silent);
+  document.getElementById("mute-label").textContent = silent ? "Muted" : "Sound";
+}
+
+btnMute.addEventListener("click", () => {
+  if (!MUSIC_PATH) {
+    showError('No background music file is set yet. Add a filename to MUSIC_PATH near the top of the script (e.g. const MUSIC_PATH = "music.mp3";) and place that file next to this HTML file.');
+    return;
+  }
+  if (bgMusic.paused) {
+    // first interaction with audio: start it playing (unmuted), rather than
+    // toggling mute — otherwise the very click that unlocks autoplay would
+    // also immediately mute it in the same action.
+    bgMusic.muted = false;
+    bgMusic.play().catch(reportMusicFailure);
+  } else {
+    bgMusic.muted = !bgMusic.muted;
+  }
+  updateMuteUI();
+});
+
+bgMusic.addEventListener("play", updateMuteUI);
+bgMusic.addEventListener("pause", updateMuteUI);
+bgMusic.addEventListener("volumechange", updateMuteUI);
+updateMuteUI();
+
+btnLighting.addEventListener("click", (e) => {
+  lightingPanel.classList.toggle("active");
+  e.currentTarget.classList.toggle("active", lightingPanel.classList.contains("active"));
+});
+
+lightingSlider.addEventListener("input", (e) => {
+  const mult = parseFloat(e.target.value);
+  lightingReadout.textContent = `${mult.toFixed(2)}×`;
+  hemi.intensity = hemiBaseIntensity * mult;
+  adjustableLights.forEach((l) => { l.intensity = l.userData.baseIntensity * mult; });
+  adjustableWingLights.forEach((l) => { l.intensity = l.userData.baseIntensity * mult; });
+});
+
+window.addEventListener("resize", () => {
+  camera.aspect = wrap.clientWidth / wrap.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+});
+
+// ---------- try to auto-load a model sitting next to this file ----------
+const AUTO_LOAD_FILENAME = "blackgoddess1.glb";
+
+function autoLoadDefaultModel() {
+  const url = new URL(AUTO_LOAD_FILENAME, window.location.href).href;
+  setLoading(true, `Looking for Angel 🖤…`);
+  gltfLoader.load(
+    url,
+    (gltf) => onModelLoaded(gltf, AUTO_LOAD_FILENAME),
+    undefined,
+    (err) => {
+      console.warn("Auto-load failed:", err);
+      setLoading(false);
+      const isFileProtocol = window.location.protocol === "file:";
+      if (isFileProtocol) {
+        showError(
+          `Couldn't auto-load Angel 🖤 — browsers block loading local files this way when opened directly (file://). ` +
+          `Serve this folder with a local server (e.g. run "python3 -m http.server" in it and open http://localhost:8000) instead.`
+        );
+      } else {
+        showError(`Couldn't find Angel 🖤 in this folder. Make sure the model file sits next to this HTML file.`);
+      }
+    }
+  );
+}
+autoLoadDefaultModel();
+
+// ---------- render loop ----------
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
