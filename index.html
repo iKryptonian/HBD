@@ -367,7 +367,7 @@
 <div id="intro-scene" class="scene">
   <div id="intro-canvas-wrap"></div>
 
-  <div id="enter-prompt">
+  <div id="enter-prompt" style="display:none;">
     <p>Tap to begin</p>
   </div>
 
@@ -621,6 +621,7 @@ function transitionToMainScene() {
     fitCameraToObject(model, 3);
     renderer.domElement.classList.add("clickable");
     setLoading(false);
+    document.getElementById("enter-prompt").style.display = "block";
   }
 
   setLoading(true, "Fetching my heart ♥️, just for you…");
