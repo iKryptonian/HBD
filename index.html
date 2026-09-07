@@ -509,7 +509,7 @@ function transitionToMainScene() {
    ============================================================= */
 (function initIntroScene() {
   // Your intro model's filename, in the same folder as this HTML file:
-  const MODEL_PATH = "https://github.com/iKryptonian/HBD/releases/download/v1.0/redheart.glb";
+  const MODEL_PATH = "https://pub-6fd05dcc8d144e869ac6a5e7c5bf6aad.r2.dev/redheart.glb";
 
   const wrap = document.getElementById("intro-canvas-wrap");
   const loadingEl = document.getElementById("intro-loading");
@@ -1156,7 +1156,7 @@ window.addEventListener("resize", () => {
 });
 
 // ---------- try to auto-load a model sitting next to this file ----------
-const AUTO_LOAD_FILENAME = "https://github.com/iKryptonian/HBD/releases/download/v1.0/blackgoddess1.glb";
+const AUTO_LOAD_FILENAME = "https://pub-6fd05dcc8d144e869ac6a5e7c5bf6aad.r2.dev/blackgoddess1.glb";
 
 function autoLoadDefaultModel() {
   const url = new URL(AUTO_LOAD_FILENAME, window.location.href).href;
