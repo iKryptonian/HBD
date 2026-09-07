@@ -478,20 +478,21 @@ function transitionToMainScene() {
   document.getElementById("intro-scene").classList.add("intro-hide");
   document.getElementById("main-scene").classList.add("visible");
   controls.autoRotate = true;
-  startMessages();
+
 
   const music = document.getElementById("bg-music");
   if (music) {
     music.muted = false;
     music.play().catch((err) => {
       reportMusicFailure(err);
+      const mainSceneEl = document.getElementById("main-scene");
       const resumeOnInteraction = () => {
-        window.removeEventListener("pointerdown", resumeOnInteraction, true);
-        window.removeEventListener("keydown", resumeOnInteraction, true);
+        mainSceneEl.removeEventListener("pointerdown", resumeOnInteraction, true);
+        mainSceneEl.removeEventListener("keydown", resumeOnInteraction, true);
         music.play().catch(() => {});
       };
-      window.addEventListener("pointerdown", resumeOnInteraction, true);
-      window.addEventListener("keydown", resumeOnInteraction, true);
+      mainSceneEl.addEventListener("pointerdown", resumeOnInteraction, true);
+      mainSceneEl.addEventListener("keydown", resumeOnInteraction, true);
     });
   }
 
@@ -1099,6 +1100,7 @@ function onModelLoaded(gltf, displayName) {
   rail.classList.add("visible");
   document.getElementById("birthday-ring").style.display = "block";
   setLoading(false);
+  startMessages();
 }
 
 // ---------- UI wiring ----------
